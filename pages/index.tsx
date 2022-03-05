@@ -5,7 +5,7 @@ import Web3 from "web3";
 const Home: NextPage = () => {
   const [data, setData] = useState<any>([]);
   const [block, setBlock] = useState<string>("");
-  const [transaction, setTransaction] = useState('');
+  const [transaction, setTransaction] = useState("");
 
   const getBlockData = async () => {
     try {
@@ -25,26 +25,51 @@ const Home: NextPage = () => {
     }
   };
 
-  const getHashData = async () => {
+  const getHashData = async (transactions: any) => {
     try {
       const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
-      const transactions = await web3.eth.getTransaction('0x7d67fb191e8b85ec6e5e2744868f70833f5e81b6a0fb9af3c9d6ff68b3f6e7d2');
-
-      setData(transactions);
-      console.log("result", transactions);
-      // if (data === null) {
-      //   return <div>No results</div>;
-      // }
-      // if (data) {
-      //   setData({ data });
-      // }
+      const transactions = await web3.eth.getTransaction(transaction);
+      console.log("transaction value result in wei", transactions.value);
+      // setTransaction(transactions);
     } catch (error) {
       console.log(error);
     }
-  }
+  };
+
+  const getTransactionFromBlock = async (block: string) => {
+    try {
+      const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
+      const transactions = await web3.eth.getBlock(block);
+      const data = await getHashData(transactions.transactions);
+      console.log("data", data);
+      return data;
+      // console.log("transactions from block", { transactions });
+
+      // console.log("transaction sum", JSON.stringify(transactions, null, 2));
+
+      // console.log("am i an array result", Array.isArray(transactions));
+      //sum up all transaction.value
+      // const sum = transactions.transactions.reduce(
+      //   (accumulator: number, currentValue: any) => {
+      //     console.log("currentValue.value", currentValue.value);
+      //     console.log("accumulator", accumulator);
+      //     return accumulator + currentValue.value;
+      //   },0);
+      //   console.log('sum', sum);
+
+      console.log("transactions results: ", transactions);
+      // console.log("transaction.value", transactions.transactions.map(t => console.log(t)));
+      // console.log("tranaction.blockNumber", transactions.blockNumber);
+      // const weiConversion = web3.utils.fromWei(transactions.value, "ether");
+      // console.log("Convert wei to eth", weiConversion);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    getBlockData();
+    // getBlockData();
+    getTransactionFromBlock(block);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -58,22 +83,45 @@ const Home: NextPage = () => {
     setBlock(e.target.value);
   };
 
+  const renderTransactions = () => {
+    if (data) {
+      //loop over transactions and make a request for each one
+      getHashData(data.transactions);
+      return data.transactions.map((transaction: any) => {
+        return (
+          <div key={transaction}>
+            <p>{transaction}</p>
+          </div>
+        );
+      });
+    }
+  };
+
   return (
     <div>
       Block search:{" "}
       <input type="text" onChange={(e) => handleChange(e)} value={block} />
       <button onClick={handleClick}>Search</button>
-      {/* {data &&
-        data.result.map((d: Result) => (
-          <>
-            <div>{d.transactions}</div>
-          </>
-        ))} */}
-      <ul>
-        {data?.transactions?.map((str: any, idx: number) => (
-          <li key={idx}>transaction: {str}</li>
-        ))}
-      </ul>
+      <table>
+        <thead>
+          <tr>
+            <th>Hash</th>
+            <th>Block Number</th>
+            <th>Transactions</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{data?.hash ? data.hash : "No hash info"}</td>
+            <td>{data?.number}</td>
+            <td>
+              {data?.transactions ? renderTransactions() : "No transactions"}
+            </td>
+            <td>{data?.timestamp}</td>
+          </tr>
+        </tbody>
+      </table>
       <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
