@@ -26,6 +26,7 @@ const Home: NextPage = () => {
   };
 
   const getHashData = async (transactions: any) => {
+    console.log("transactions", transactions);
     try {
       const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
       const transactions = await web3.eth.getTransaction(transaction);
@@ -40,8 +41,15 @@ const Home: NextPage = () => {
     try {
       const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
       const transactions = await web3.eth.getBlock(block);
-      const data = await getHashData(transactions.transactions);
-      console.log("data", data);
+      console.log("transactions.transactions", transactions.transactions[0]);
+      // if (!data || !data.transactions || data.transactions.length === 0) {
+      //   console.log("transactions", transactions);
+      //   // console.error('No transactions found in block');
+      //   throw new Error("No data");
+      // } else {
+        const data = await getHashData(transactions.transactions);
+        console.log("data", data);
+      // }
       return data;
       // console.log("transactions from block", { transactions });
 
@@ -68,7 +76,7 @@ const Home: NextPage = () => {
   };
 
   useEffect(() => {
-    // getBlockData();
+    getBlockData();
     getTransactionFromBlock(block);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -84,7 +92,7 @@ const Home: NextPage = () => {
   };
 
   const renderTransactions = () => {
-    if (data) {
+    if (data?.transactions) {
       //loop over transactions and make a request for each one
       getHashData(data.transactions);
       return data.transactions.map((transaction: any) => {
@@ -94,6 +102,8 @@ const Home: NextPage = () => {
           </div>
         );
       });
+    } else {
+      return <div>No results</div>;
     }
   };
 
@@ -115,14 +125,15 @@ const Home: NextPage = () => {
           <tr>
             <td>{data?.hash ? data.hash : "No hash info"}</td>
             <td>{data?.number}</td>
-            <td>
-              {data?.transactions ? renderTransactions() : "No transactions"}
-            </td>
+            <td>{renderTransactions()}</td>
             <td>{data?.timestamp}</td>
           </tr>
         </tbody>
       </table>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <pre>
+        debugger: <br/>   
+        {JSON.stringify(data, null, 2)}
+      </pre>
     </div>
   );
 };
