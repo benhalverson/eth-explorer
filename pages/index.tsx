@@ -1,12 +1,15 @@
 import type { NextPage } from "next";
 import { ChangeEvent, useEffect, useState } from "react";
 import Web3 from "web3";
-import { convertUnixToDate } from "../utils/dateConverter";
+import Card from "../components/Card";
+import CardList from "../components/CardList";
+import { truncateHash, convertUnixToDate } from "../utils";
 
 const Home: NextPage = () => {
   const [data, setData] = useState<any>([]);
   const [block, setBlock] = useState<string>("");
   const [hashTotalValue, setHashTotalValue] = useState<string>("");
+  const [tranactions, setTranactions] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
@@ -15,15 +18,24 @@ const Home: NextPage = () => {
     try {
       const blocks = await web3.eth.getBlock(block);
       setData(blocks);
-      loadingRender();
-      if (blocks.transactions && blocks.transactions.length > 0) {
-        const txs = blocks.transactions;
+
+      for (let i = 0; i < blocks.transactions.length; i++) {
+        const t = await web3.eth.getTransaction(blocks.transactions[i]);
+        setTranactions((tranactions: any) => {
+          console.log("set tranactions", t);
+
+          return [...tranactions, t];
+        });
+      }
+      if (blocks?.transactions && blocks.transactions.length > 0) {
+        const txs = blocks?.transactions;
         // let txCount = txs.length;
         let totalValue: number[] = [];
-
         while (txs.length > 0) {
-          // loadingRender();
           const tx = await web3.eth.getTransaction(txs[txs.length - 1]);
+          if (tx.value === null || tx.value === undefined) {
+            throw new Error("no value");
+          }
           let total = 0;
           total += parseFloat(tx.value);
           totalValue.push(total);
@@ -51,12 +63,6 @@ const Home: NextPage = () => {
     }
   };
 
-  const loadingRender = () => {
-    if (loading) {
-      return <div>Loading...</div>;
-    }
-  };
-
   const handleClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     getBlockData();
@@ -70,18 +76,18 @@ const Home: NextPage = () => {
 
   const renderTransactions = () => {
     if (data?.transactions) {
-      return <div>{data.transactions.length} transactions</div>;
+      console.log("data.transactions", data.transactions);
+      return <div>{data?.transactions.length} transactions</div>;
     } else {
       return <div>No results</div>;
     }
   };
 
-  useEffect(() => {
-    loadingRender();
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <div>
+      
       Block search:
       <input type="text" onChange={(e) => handleChange(e)} value={block} />
       <button onClick={handleClick}>Search</button>
@@ -123,7 +129,9 @@ const Home: NextPage = () => {
         <tbody>
           <tr>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {data?.hash ? data.hash : "No hash info"}
+              {truncateHash(data?.hash)
+                ? truncateHash(data.hash)
+                : "No hash info"}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {data?.number}
@@ -132,7 +140,7 @@ const Home: NextPage = () => {
               {renderTransactions()}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {convertUnixToDate(data.timestamp)}
+              {convertUnixToDate(data?.timestamp)}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               ETH {hashTotalValue ? hashTotalValue : "0"}{" "}
@@ -140,12 +148,54 @@ const Home: NextPage = () => {
           </tr>
         </tbody>
       </table>
-      <pre>
-        {/* debugger: <br />
-        {JSON.stringify(data, null, 2)} */}
-        {/* Total value: <br /> */}
-        {/* {hashTotalValue} */}
-      </pre>
+
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {tranactions.map((t: any, index: number) => {
+          return (
+            <li
+              key={index}
+              className="col-span-1 flex flex-col text-center bg-white rounded-lg shadow divide-y divide-gray-200"
+            >
+              <div className="flex-1 flex flex-col p-8">
+                <div>Total eth transfered: {web3.utils.fromWei(t.value, "ether")}</div>
+                <div>Gas  {web3.utils.fromWei(t.gas.toString(), "ether")}</div>
+                <div>Gas Price  {web3.utils.fromWei(t.gasPrice, "ether")}</div>
+                <div className="px-2 py-1 text-green-800 text-xs font-medium bg-green-100 rounded-full">
+                  {t.from}
+                </div>
+                To:
+                <div className="px-2 py-1 text-green-800 text-xs font-medium bg-green-100 rounded-full">
+                  {t.to}
+                </div>
+              </div>
+              <div>
+                <div className="-mt-px flex divide-x divide-gray-200">
+                  <div className="w-0 flex-1 flex">
+                    {/* <a
+                  href={`mailto:${person.email}`}
+                  className="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500"
+                >
+                  <MailIcon className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  <span className="ml-3">Email</span>
+                </a> */}
+                    fill me in
+                  </div>
+                  <div className="-ml-px w-0 flex-1 flex">
+                    {/* <a
+                  href={`tel:${person.telephone}`}
+                  className="relative w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-br-lg hover:text-gray-500"
+                >
+                  <PhoneIcon className="w-5 h-5 text-gray-400" aria-hidden="true" />
+                  <span className="ml-3">Call</span>
+                </a> */}
+                    fill me in 2
+                  </div>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 };

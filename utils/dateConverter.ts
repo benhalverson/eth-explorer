@@ -1,4 +1,8 @@
 //convert unix timestamp to date
-export const convertUnixToDate = (unix: number) => {
-  return new Date(unix * 1000).toLocaleDateString();
-}
+export const convertUnixToDate = (unix: number): string => {
+  if (unix) {
+    return new Date(unix * 1000).toLocaleDateString();
+  } else {
+    return "";
+  }
+};
