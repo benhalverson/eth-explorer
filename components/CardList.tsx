@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Web3 from "web3";
 import { MailIcon, PhoneIcon } from "@heroicons/react/solid";
 const CardList = ({ transactions }: TransactionList[] | any) => {
-  console.log('transactions', transactions)
+  // console.log('transactions', transactions)
   const [hash, setHash] = useState<string[]>([]);
   const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
 

@@ -1,6 +1,6 @@
 
 const Card = ({tranactions}: any) => {
-  console.log('card tranactions', tranactions);
+  // console.log('card tranactions', tranactions);
   return <div>Card</div>
 } 
 export default Card
