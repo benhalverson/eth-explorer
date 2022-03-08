@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import ReactLoading from "react-loading";
 import Web3 from "web3";
 // import Card from "../components/Card";
@@ -29,8 +29,9 @@ const Home: NextPage = () => {
       if (blocks?.transactions && blocks.transactions.length > 0) {
         const txs = blocks?.transactions;
         let totalValue: number[] = [];
-        while (txs.length > 0) {
-          const tx = await web3.eth.getTransaction(txs[txs.length - 1]);
+        let txLength = txs.length;
+        while (txLength > 0) {
+          const tx = await web3.eth.getTransaction(txs[txLength - 1]);
           if (tx.value === null || tx.value === undefined) {
             throw new Error("no value");
           }
@@ -39,8 +40,8 @@ const Home: NextPage = () => {
           let total = 0;
           total += parseFloat(tx.value);
           totalValue.push(total);
-          txs.length--;
-          console.log("txCount", txs.length);
+          txLength--;
+          console.log("txCount", txLength);
         }
 
         console.log("loading 1", loading);
@@ -82,6 +83,7 @@ const Home: NextPage = () => {
     setBlock(e.target.value);
   };
 
+  
   return (
     <>
       <div className="container text-center">
