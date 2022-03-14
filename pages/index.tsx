@@ -16,6 +16,9 @@ const Home: NextPage = () => {
   const [enabled, setEnabled] = useState(false);
 
   const web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
+  const {
+    useGetTransactionFromBlock,
+  } = require("../hooks/useGetTransactionsFromBlock");
 
   const getBlockData = async () => {
     try {
@@ -28,6 +31,7 @@ const Home: NextPage = () => {
       }
       if (blocks?.transactions && blocks.transactions.length > 0) {
         const txs = blocks?.transactions;
+        console.log("txs", txs);
         let totalValue: number[] = [];
         let txLength = txs.length;
         while (txLength > 0) {
@@ -66,9 +70,15 @@ const Home: NextPage = () => {
     }
   };
 
+  // const useData = useGetTransactionFromBlock(block);
+
+  // useData(block);
   const handleClick = (e: { preventDefault: () => void }) => {
     e.preventDefault();
     getBlockData();
+    // useData(block);
+
+    // useGetTransactionFromBlock(block);
     getTransactionFromBlock(block);
   };
 
@@ -83,7 +93,6 @@ const Home: NextPage = () => {
     setBlock(e.target.value);
   };
 
-  
   return (
     <>
       <div className="container text-center">
@@ -212,10 +221,12 @@ const Home: NextPage = () => {
                       rel="noreferrer"
                     >
                       {truncateHash(t.from)}
+                      {/* {t.from.length} */}
                     </a>
                   </div>
                   <div className="-ml-px w-0 flex-1 flex">
                     To: {truncateHash(t.to)}
+                    {/* {t.to.length} */}
                   </div>
                 </div>
               </div>
@@ -223,6 +234,7 @@ const Home: NextPage = () => {
           );
         })}
       </ul>
+      <pre>{JSON.stringify(tranactions, null, 2)}</pre>
     </>
   );
 };
